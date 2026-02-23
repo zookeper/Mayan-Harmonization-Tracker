@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BAKTUN Cycle Indicator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap');
+
+        body {
+            background-color: #050505;
+            color: #d4af37;
+            font-family: 'Cinzel Decorative', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            margin: 5;
+            overflow: hidden;
+        }
+
+        .debug-panel {
+            margin-bottom: 10px;
+            background: #1a1a1a;
+            padding: 5px 15px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+        }
+        .debug-panel label { font-size: 0.6rem; color: #8a7d6a; }
+        .debug-panel input { 
+            background: #000; border: 1px solid #d4af37; color: #d4af37; 
+            font-family: 'Cinzel Decorative'; font-size: 0.7rem; padding: 2px;
+            width: 120px;
+        }
+
+        .temple-container {
+            background: rgba(10, 10, 10, 0.98);
+            padding: 15px;
+            border: 1px solid #222;
+            text-align: center;
+            width: 95%;
+            max-width: 500px;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
+            margin-top: 10px;
+        }
+
+        h1 { letter-spacing: 4px; color: #c4b491; margin: 15; font-size: 1.5rem; transition: all 0.5s; }
+        .sub-head { font-size: 0.6rem; letter-spacing: 3px; color: #8a7d6a; margin-bottom: 10px; }
+
+        .odometer { display: flex; justify-content: space-around; margin: 15px 0; }
+        .digit-group { flex: 1; perspective: 1000px; }
+        
+        .digit { 
+            font-size: 2.2rem; 
+            font-weight: bold; 
+            color: #ffcc00; 
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+            display: inline-block;
+        }
+
+        .flip { animation: glyphFlip 0.6s ease-in-out; }
+        @keyframes glyphFlip {
+            0% { transform: rotateX(0deg); opacity: 1; }
+            50% { transform: rotateX(90deg); opacity: 0.5; }
+            100% { transform: rotateX(0deg); opacity: 1; }
+        }
+
+        .digit-label { font-size: 0.6rem; color: #8a7d6a; margin-top: 10px; letter-spacing: 1px; }
+
+        .section-header { font-size: 0.9rem; color: #c4b491; margin-top: 10px; letter-spacing: 2px; }
+        .divider { height: 1px; background: linear-gradient(to right, transparent, #333, transparent); margin: 15px 0; }
+
+        .sync-row .digit { font-size: 1.4rem; color: #ffcc00; text-shadow: 0 0 8px rgba(255, 204, 0, 0.4); }
+        .sync-row .digit-label { font-size: 0.45rem; color: #999; }
+        
+        .timer-text { font-size: 1.5rem; color: #c4b491; margin-top: 10px; letter-spacing: 2px; }
+        .timer-label { font-size: 0.55rem; color: #999; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
+
+        body.alignment-active { background: radial-gradient(circle, #2b1d02 0%, #050505 100%); }
+        .alignment-banner { color: #fff; text-shadow: 0 0 15px #ffaa00; font-size: 0.8rem; height: 1.2rem; margin: 15px 0; opacity: 0; transition: opacity 1s; }
+        body.alignment-active .alignment-banner { opacity: 1; }
+        .copyright {
+          margin-top: 25px;
+          font-size: 0.5rem;
+          color: #999; /* Darker gold/grey to stay subtle */
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          border-top: 1px solid #222;
+          padding-top: 15px;
+          width: 100%;
+      }
+    </style>
+</head>
+<body>
+
+    <div class="debug-panel">
+        <label>TEMPORAL CALIBRATION:</label>
+        <input type="text" id="date-tester" placeholder="YYYY-MM-DD" value="CURRENT">
+    </div>
+
+    <div class="temple-container">
+        <h1 id="sun-title">CALIBRATING...</h1>
+        <div class="sub-head">GALACTIC HARMONIZATION</div>
+        
+        <div class="odometer">
+            <div class="digit-group"><div class="digit" id="now-0">--</div><div class="digit-label">BAKTUN</div></div>
+            <div class="digit-group"><div class="digit" id="now-1">--</div><div class="digit-label">KATUN</div></div>
+            <div class="digit-group"><div class="digit" id="now-2">--</div><div class="digit-label">TUN</div></div>
+            <div class="digit-group"><div class="digit" id="now-3">--</div><div class="digit-label">WINAL</div></div>
+            <div class="digit-group"><div class="digit" id="now-4">--</div><div class="digit-label">KIN</div></div>
+        </div>
+
+        <div class="alignment-banner" id="align-msg">HARMONY DETECTED</div>
+
+        <div class="divider"></div>
+        <div class="section-header">NEXT HARMONY GATE</div>
+        <div class="odometer sync-row" id="future-gate-odometer"></div>
+        <div class="timer-text" id="future-timer">0Y 0M 0D</div>
+        <div class="timer-label">TIME UNTIL CONVERGENCE</div>
+
+        <div class="divider"></div>
+        <div class="section-header">PREVIOUS HARMONY GATE</div>
+        <div class="odometer sync-row" id="past-gate-odometer"></div>
+        <div class="timer-text" id="past-timer">0Y 0M 0D</div>
+        <div class="timer-label">TIME ELAPSED SINCE ANCHOR</div>
+        <div class="copyright">
+    Copyright &copy; 2026 Xai Avalon Tourney. All Rights Reserved.
+</div>
+
+    </div>
+
+    <script>
+        const labels = ["BAKTUN", "KATUN", "TUN", "WINAL", "KIN"];
+
+        function getLongCount(daysFromAnchor) {
+            let totalDays = daysFromAnchor + 1872000;
+            const b = Math.floor(totalDays / 144000);
+            let rem = ((totalDays % 144000) + 144000) % 144000;
+            const k = Math.floor(rem / 7200); rem %= 7200;
+            const t = Math.floor(rem / 360); rem %= 360;
+            const w = Math.floor(rem / 20); const ki = rem % 20;
+            return [b, k, t, w, ki];
+        }
+
+        function checkAlignment(lc) {
+            // DYNAMIC FIX: The master Bak'tun is determined by the date being checked.
+            // If scanning steps back into Bak'tun 13, it will seek 13s.
+            const activeBaktun = lc[0];
+            const subunits = lc.slice(1);
+            
+            // STRICT RULE: Every unit must be the active Bak'tun or 0.
+            return subunits.every(v => v === activeBaktun || v === 0);
+        }
+
+        function createGateDisplay(containerId, vals) {
+            document.getElementById(containerId).innerHTML = vals.map((v, i) => `
+                <div class="digit-group">
+                    <div class="digit">${v}</div>
+                    <div class="digit-label">${labels[i]}</div>
+                </div>`).join('');
+        }
+
+        function update() {
+            let now;
+            const testValue = document.getElementById('date-tester').value.toUpperCase();
+            now = (testValue === "CURRENT" || testValue === "") ? new Date() : new Date(testValue);
+            if (isNaN(now.getTime())) return;
+
+            const correlation = new Date('2012-12-21T00:00:00');
+            const daysSinceAnchor = Math.floor((now - correlation) / 86400000);
+            const currentLC = getLongCount(daysSinceAnchor);
+            
+            // For UI text
+            const masterBaktun = currentLC[0];
+
+            const findGate = (start, dir) => {
+                let d = start + dir;
+                // Expanded search loop to ensure it can reach across full Baktun transitions
+                for (let i = 0; i < 200000; i++) {
+                    if (checkAlignment(getLongCount(d))) return d;
+                    d += dir;
+                }
+                return d;
+            };
+
+            const nextGate = findGate(daysSinceAnchor, 1);
+            const pastGate = findGate(daysSinceAnchor, -1);
+
+            createGateDisplay('future-gate-odometer', getLongCount(nextGate));
+            createGateDisplay('past-gate-odometer', getLongCount(pastGate));
+
+            const calcYMD = (diff) => {
+                const d = Math.abs(diff);
+                return `${Math.floor(d/360)}Y ${Math.floor((d%360)/20)}M ${d%20}D`;
+            };
+            document.getElementById('future-timer').innerText = calcYMD(nextGate - daysSinceAnchor);
+            document.getElementById('past-timer').innerText = calcYMD(daysSinceAnchor - pastGate);
+
+            const sunNames = ["FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH", "SIXTH", "SEVENTH", "EIGHTH", "NINTH", "TENTH", "ELEVENTH", "TWELFTH", "THIRTEENTH"];
+            document.getElementById('sun-title').innerText = `THE ${sunNames[masterBaktun - 8] || masterBaktun} SUN`;
+
+            currentLC.forEach((val, i) => {
+                const el = document.getElementById(`now-${i}`);
+                if (el && parseInt(el.innerText) !== val) {
+                    el.classList.remove('flip');
+                    void el.offsetWidth; // trigger reflow
+                    el.classList.add('flip');
+                    el.innerText = val;
+                }
+            });
+
+            // Alignment check for the current moment
+            if (checkAlignment(currentLC)) {
+                document.body.classList.add('alignment-active');
+                document.getElementById('align-msg').innerText = "BAKTUN ALIGNMENT";
+            } else {
+                document.body.classList.remove('alignment-active');
+            }
+        }
+
+        setInterval(update, 1000);
+        update();
+    </script>
+</body>
+</html>
